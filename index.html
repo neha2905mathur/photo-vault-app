@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Photo Vault">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="robots" content="noindex,nofollow">
+<title>Meri Private Photo Vault</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root { --blue:#1d4ed8; --green:#15803d; --red:#b91c1c; --ink:#111827; --mute:#6b7280; --line:#e5e7eb; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:#f3f4f6; font-size:18px; }
+  body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  header { background:var(--blue); color:#fff; padding:18px 20px; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:4px 0 0; font-size:15px; opacity:.9; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  section { background:#fff; border-radius:16px; padding:18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  h2 { font-size:20px; margin:0 0 10px; }
+  p.hint { color:var(--mute); font-size:15px; line-height:1.5; margin:8px 0; }
+  label { display:block; font-weight:600; margin:14px 0 6px; }
+  input[type=text], input[type=password] { width:100%; font-size:18px; padding:14px; border:2px solid var(--line); border-radius:12px; }
+  input:focus { outline:none; border-color: var(--blue); }
+  .btn { display:block; width:100%; min-height:58px; font-size:19px; font-weight:700; border:0; border-radius:14px; background:var(--blue); color:#fff; padding:14px; margin-top:12px; cursor:pointer; }
+  .btn:disabled { opacity:.5; }
+  .btn.ghost { background:#e5e7eb; color:var(--ink); }
+  .btn.danger { background:var(--red); }
+  .btn-small { display:inline-block; width:auto; min-height:44px; font-size:16px; padding:10px 14px; margin:6px 6px 0 0; }
+  .pick { display:block; text-align:center; min-height:72px; line-height:72px; font-size:21px; font-weight:800; background:var(--green); color:#fff; border-radius:16px; cursor:pointer; }
+  .pick input { display:none; }
+  .pick[aria-disabled=true] { opacity:.5; }
+  .msg { min-height:1.4em; margin:10px 0 0; font-size:16px; line-height:1.4; }
+  .msg.ok { color:var(--green); }
+  .msg.bad { color:var(--red); }
+  .card { border:1px solid var(--line); border-radius:14px; padding:14px; margin-top:12px; }
+  .card-title { font-weight:700; word-break:break-all; }
+  .card-meta { color:var(--mute); font-size:15px; margin-top:4px; }
+  .row { display:flex; flex-wrap:wrap; }
+  .empty { color:var(--mute); text-align:center; padding:12px 0; }
+  .usage { font-size:16px; line-height:1.7; color:#374151; }
+  .top-actions { display:flex; gap:10px; }
+  .top-actions .btn { margin-top:0; min-height:48px; font-size:16px; }
+  dialog { border:0; border-radius:16px; padding:0; width:min(96vw,720px); max-height:92vh; }
+  dialog::backdrop { background: rgba(0,0,0,.7); }
+  .viewer-head { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid var(--line); gap:10px; }
+  .viewer-head span { font-weight:700; word-break:break-all; }
+  .viewer-head button { min-height:44px; font-size:16px; padding:8px 14px; border:0; border-radius:10px; background:#e5e7eb; }
+  #viewer-body { padding:10px; text-align:center; background:#111; min-height:200px; }
+  #viewer-body img, #viewer-body video { max-width:100%; max-height:70vh; border-radius:8px; }
+  #viewer-body p { color:#fff; }
+  .warn { background:#fef3c7; border-radius:12px; padding:12px; font-size:16px; line-height:1.5; margin-top:10px; }
+  [hidden] { display:none !important; }
+  code { font-size:15px; background:#f3f4f6; padding:2px 6px; border-radius:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔒 Meri Private Photo Vault</h1>
+  <p>Photos browser mein hi lock hoti hain. GitHub par sirf encrypted data jaata hai.</p>
+</header>
+<main>
+
+  <!-- Screen 1: token, once per phone -->
+  <section id="setup" hidden>
+    <h2>Pehle ek baar setup</h2>
+    <p class="hint">GitHub ka token ek baar daalo. Ye sirf is phone mein save hoga, kahin aur nahi.</p>
+    <p class="hint">Token banane ke steps:<br>
+      1. GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token<br>
+      2. Repository access: <b>Only select repositories</b> → <b>photo-vault</b><br>
+      3. Permissions → Repository permissions → <b>Contents: Read and write</b><br>
+      4. Generate token, copy karke neeche paste karo.</p>
+    <label for="token">GitHub token</label>
+    <input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_...">
+    <label for="owner">GitHub username</label>
+    <input id="owner" type="text" autocapitalize="off" spellcheck="false">
+    <label for="repo">Private repo ka naam</label>
+    <input id="repo" type="text" autocapitalize="off" spellcheck="false">
+    <button id="token-save" class="btn">Token save karo</button>
+    <p id="setup-msg" class="msg"></p>
+  </section>
+
+  <!-- Screen 2: passphrase -->
+  <section id="unlock" hidden>
+    <h2>Vault kholo</h2>
+    <p class="hint">Apna passphrase daalo. Ye kahin save nahi hota. <b>Passphrase bhool gaye to photos wapas nahi aayengi.</b></p>
+    <label for="pass">Passphrase (kam se kam 8 characters)</label>
+    <input id="pass" type="password" autocomplete="off" autocapitalize="off">
+    <div id="pass-confirm-wrap" hidden>
+      <label for="pass2">Passphrase dobara likho</label>
+      <input id="pass2" type="password" autocomplete="off" autocapitalize="off">
+    </div>
+    <button id="unlock-btn" class="btn">Vault kholo</button>
+    <button id="token-change" class="btn ghost">GitHub token badlo</button>
+    <p id="unlock-msg" class="msg"></p>
+  </section>
+
+  <!-- Screen 3: main -->
+  <section id="main" hidden>
+    <div class="top-actions">
+      <button id="refresh-btn" class="btn ghost">Refresh</button>
+      <button id="lock-btn" class="btn ghost">Lock karo</button>
+    </div>
+    <label class="pick" id="pick-label">
+      📷 Photos / videos chuno
+      <input id="pick" type="file" accept="image/*,video/*" multiple>
+    </label>
+    <p class="hint">Jo bhi chunoge woh phone mein encrypt hoke upload hoga. Ek ek karke jaayega, thoda time lagega.</p>
+    <p id="status" class="msg"></p>
+  </section>
+
+    <section data-for="main" id="usage-section" hidden>
+    <h2>Space</h2>
+    <div id="usage" class="usage"></div>
+  </section>
+
+  <section data-for="main" id="list-section" hidden>
+    <h2>Backup ki hui files</h2>
+    <div id="list"></div>
+  </section>
+
+  <dialog id="viewer">
+    <div class="viewer-head">
+      <span id="viewer-title"></span>
+      <button id="viewer-close">Band karo</button>
+    </div>
+    <div id="viewer-body"></div>
+  </dialog>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
